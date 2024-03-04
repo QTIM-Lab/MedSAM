@@ -9,4 +9,3 @@ poetry install
 
 pyenv activate MedSAM
 ```
-
