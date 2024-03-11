@@ -1,5 +1,6 @@
 imports:
 - $import torch
+- $import monai
 - $import scripts
 - $import scripts.net
 - $import scripts.train
@@ -30,6 +31,13 @@ train:
 validate:
   dataset:
     data: []
+
+device: $torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+test_tensor: '$torch.rand(*[4,4]).to(@device)'
+
+test_config:
+- '$monai.config.print_config()'
+- '$print("Test tensor:", @test_tensor)'
 
 run:
 - $scripts.train.train(@net, @weights_path, @dataloader)
