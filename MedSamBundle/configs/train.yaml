@@ -1,44 +1,61 @@
 imports:
 - $import torch
+- $from tqdm import tqdm
 - $import monai
 - $import scripts
 - $import scripts.net
 - $import scripts.train
 - $import scripts.transforms
-- $import scripts.dataloaders
+- $from transformers import SamProcessor
+- $from transformers import SamModel
 
-bundle_root: ./model/MedSamBundle
+- $from scripts.dataset import SAMDataset
+# - $import scripts.dataloaders
+
+# bundle_root: ./model/MedSamBundle
 # ckpt_path: $@bundle_root + '/models/model_trained.pt'
-weights_path: $@bundle_root + '/models/model_orig.pt'
-ckpt_output_path: $@bundle_root + '/models/model.pt'
-
-net:
-  _target_: scripts.net.MyCustomNet
-
 # pretrained_weights_path: 
+# weights_path: $@bundle_root + '/models/model_orig.pt'
+# ckpt_output_path: $@bundle_root + '/models/model.pt'
+
+device: '$"cuda" if torch.cuda.is_available() else "cpu"'
 
 transforms: 'scripts.custom_post_transform.CustomPostTransform'
 
-# dataloader: '$scripts.dataloaders.get_dataloader(True, @transforms)'
-dataloader: '$scripts.dataloaders.datastore_dataloader(@train#dataset#data, @validate#dataset#data, @transforms)'
+processor: '$SamProcessor.from_pretrained("facebook/sam-vit-base")'
 
-train:
-  trainer:
-    max_epochs: 3
-  dataset:
-    data: []
+dataset:
+  _target_: $SAMDataset
+  dataset: '@dataset_csv'
+  processor: '@processor'
 
-validate:
-  dataset:
-    data: []
+dataloader: $torch.utils.data.DataLoader
 
-device: $torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 test_tensor: '$torch.rand(*[4,4]).to(@device)'
 
+model: '$SamModel.from_pretrained("facebook/sam-vit-base")'
+# net:
+#   _target_: scripts.net.MyCustomNet
+
+
+
+# Tests
 test_config:
 - '$monai.config.print_config()'
 - '$print("Test tensor:", @test_tensor)'
 
+test_dataset:
+- '$print("--- DATASET DEBUG ---")'
+- '$print(f"Dataset : {@dataset_csv}")'
+- '$print(f"Processor: {@processor}")'
+- '$print(f"Dataset length:  {@dataset.__len__()}")'
+- '$print(f"__get_item__:  {@dataset.__getitem__(0)}")'
+
+test_dataloader:
+- '$print("--- DATALOADER DEBUG ---")'
+- '$print([batch["input_boxes"] for batch in tqdm(@dataloader(@dataset, batch_size=3, shuffle=True))])'
+
+# Run
 run:
-- $scripts.train.train(@net, @weights_path, @dataloader)
-- $torch.save(@net.state_dict(), @ckpt_output_path)
+- $scripts.train.train(@model, @device, @dataloader(@dataset, batch_size=3, shuffle=True))
+# - $torch.save(@net.state_dict(), @ckpt_output_path)

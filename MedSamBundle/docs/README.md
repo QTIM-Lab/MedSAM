@@ -61,10 +61,18 @@ Describe your model here and how to run it, for example using `metadata.json` an
 ```
 # convenient to define the bundle's root in a variable
 BUNDLE="./MedSamBundle"
+CONFIG_DEF_ENTRY_KEY=train_config
+CONFIG_DEF_ENTRY_KEY=test_dataset
+CONFIG_DEF_ENTRY_KEY=test_dataloader
+CONFIG_DEF_ENTRY_KEY=run
 
-python -m monai.bundle run  test_config\
+DATASET_CSV=/sddata/data/MedSAM/public_test_data_01_10_2023/image_key_cf.csv
+
+# Note: --dataset_csv is made up config def entry key accessible with @dataset_csv
+
+python -m monai.bundle run $CONFIG_DEF_ENTRY_KEY \
   --meta_file $BUNDLE/configs/metadata.json \
   --config_file $BUNDLE/configs/train.yaml \
-  --dataset_dir ./tmp_data \
+  --dataset_csv $DATASET_CSV \
   --bundle_root $BUNDLE
 ```
