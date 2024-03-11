@@ -12,7 +12,7 @@
     "name": "MedSamBundle",
     "task": "Example Bundle",
     "description": "MedSamBundle to Segment GA",
-    "authors": "Scott Kinder & Ben Bearce",
+    "authors": "Ben Bearce, Advaith Veturi and Scott Kinder",
     "copyright": "QTIM",
     "data_source": "Uploaded",
     "data_type": "float32",
