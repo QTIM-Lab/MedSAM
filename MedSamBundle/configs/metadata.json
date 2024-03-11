@@ -1,0 +1,55 @@
+{
+    "version": "0.0.1",
+    "changelog": {
+        "0.0.1": "Initial version"
+    },
+    "monai_version": "1.2.0",
+    "pytorch_version": "2.0.0",
+    "numpy_version": "1.23.5",
+    "optional_packages_version": {
+        "torchvision": "0.15.0"
+    },
+    "name": "MedSamBundle",
+    "task": "Example Bundle",
+    "description": "MedSamBundle to Segment GA",
+    "authors": "Scott Kinder & Ben Bearce",
+    "copyright": "QTIM",
+    "data_source": "Uploaded",
+    "data_type": "float32",
+    "intended_use": "This is suitable for demonstration only",
+    "network_data_format": {
+        "inputs": {
+            "image": {
+                "type": "image",
+                "format": "magnitude",
+                "modality": "natural",
+                "num_channels": 3,
+                "spatial_shape": [512, 512],
+                "dtype": "float32",
+                "value_range": [0, 255],
+                "is_patch_data": false,
+                "channel_def": {
+                    "0": "red",
+                    "1": "green",
+                    "2": "blue"
+                }
+            }
+        },
+        "outputs": {
+            "pred": {
+                "type": "probabilities",
+                "format": "classes",
+                "num_channels": 3,
+                "spatial_shape": [512,512],
+                "dtype": "float32",
+                "value_range": [0, 1],
+                "is_patch_data": false,
+                "channel_def": {
+                    "0": "background",
+                    "1": "disc",
+                    "2": "cup"
+                }
+            }
+        }
+    }
+}

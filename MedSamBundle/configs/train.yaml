@@ -1,0 +1,36 @@
+imports:
+- $import torch
+- $import scripts
+- $import scripts.net
+- $import scripts.train
+- $import scripts.transforms
+- $import scripts.dataloaders
+
+bundle_root: ./model/MedSamBundle
+# ckpt_path: $@bundle_root + '/models/model_trained.pt'
+weights_path: $@bundle_root + '/models/model_orig.pt'
+ckpt_output_path: $@bundle_root + '/models/model.pt'
+
+net:
+  _target_: scripts.net.MyCustomNet
+
+# pretrained_weights_path: 
+
+transforms: 'scripts.custom_post_transform.CustomPostTransform'
+
+# dataloader: '$scripts.dataloaders.get_dataloader(True, @transforms)'
+dataloader: '$scripts.dataloaders.datastore_dataloader(@train#dataset#data, @validate#dataset#data, @transforms)'
+
+train:
+  trainer:
+    max_epochs: 3
+  dataset:
+    data: []
+
+validate:
+  dataset:
+    data: []
+
+run:
+- $scripts.train.train(@net, @weights_path, @dataloader)
+- $torch.save(@net.state_dict(), @ckpt_output_path)
