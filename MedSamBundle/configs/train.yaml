@@ -3,24 +3,12 @@ imports:
 - $from tqdm import tqdm
 - $import monai
 - $import scripts
-- $import scripts.net
 - $import scripts.train
-- $import scripts.transforms
 - $from transformers import SamProcessor
 - $from transformers import SamModel
-
 - $from scripts.dataset import SAMDataset
-# - $import scripts.dataloaders
-
-# bundle_root: ./model/MedSamBundle
-# ckpt_path: $@bundle_root + '/models/model_trained.pt'
-# pretrained_weights_path: 
-# weights_path: $@bundle_root + '/models/model_orig.pt'
-# ckpt_output_path: $@bundle_root + '/models/model.pt'
 
 device: '$"cuda" if torch.cuda.is_available() else "cpu"'
-
-transforms: 'scripts.custom_post_transform.CustomPostTransform'
 
 processor: '$SamProcessor.from_pretrained("facebook/sam-vit-base")'
 
@@ -34,10 +22,6 @@ dataloader: $torch.utils.data.DataLoader
 test_tensor: '$torch.rand(*[4,4]).to(@device)'
 
 model: '$SamModel.from_pretrained("facebook/sam-vit-base")'
-# net:
-#   _target_: scripts.net.MyCustomNet
-
-
 
 # Tests
 test_config:
@@ -56,6 +40,24 @@ test_dataloader:
 - '$print([batch["input_boxes"] for batch in tqdm(@dataloader(@dataset, batch_size=3, shuffle=True))])'
 
 # Run
-run:
+infer:
+- $scripts.infer.infer()
+
+train:
 - $scripts.train.train(@model, @device, @dataloader(@dataset, batch_size=3, shuffle=True))
-# - $torch.save(@net.state_dict(), @ckpt_output_path)
+
+
+
+
+## Staged for delete  ##
+transforms: 'scripts.custom_post_transform.CustomPostTransform'
+# - $import scripts.net
+# - $import scripts.transforms
+# - $import scripts.dataloaders
+# bundle_root: ./model/MedSamBundle
+# ckpt_path: $@bundle_root + '/models/model_trained.pt'
+# pretrained_weights_path: 
+# weights_path: $@bundle_root + '/models/model_orig.pt'
+# ckpt_output_path: $@bundle_root + '/models/model.pt'
+# net:
+#   _target_: scripts.net.MyCustomNet

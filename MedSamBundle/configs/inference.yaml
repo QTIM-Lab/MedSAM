@@ -1,59 +1,45 @@
 imports:
+- $import torch
+- $from tqdm import tqdm
+- $import monai
 - $import scripts
-- $import scripts.net
-- $import scripts.transforms
-- $from PIL import Image
-#- $import scripts.inference # I don't see this...BB
+- $import scripts.infer
+- $from transformers import SamProcessor
+- $from transformers import SamModel
+- $from scripts.dataset import SAMDataset
 
-# bundle_root: ./model/MedSamBundle
+device: '$"cuda" if torch.cuda.is_available() else "cpu"'
 
-# ckpt_path: './cifar_net.pth'
+processor: '$SamProcessor.from_pretrained("facebook/sam-vit-base")'
 
-# input_dir: 'test_cifar10'
-# input_files: '$sorted(glob.glob(@input_dir+''/*.*''))'
+dataset:
+  _target_: $SAMDataset
+  dataset: '@dataset_csv'
+  processor: '@processor'
 
-# device: '$torch.device(''cuda:0'')'
+dataloader: $torch.utils.data.DataLoader
 
-dropout: 0.1
+test_tensor: '$torch.rand(*[4,4]).to(@device)'
 
-# net:
-#   _target_: scripts.net.MyCustomNet
+model: '$SamModel.from_pretrained("facebook/sam-vit-base")'
 
-network_def:
-  _target_: scripts.net.MyCustomNet
+# Tests
+test_config:
+- '$monai.config.print_config()'
+- '$print("Test tensor:", @test_tensor)'
 
-# transforms: '$scripts.transforms.transform'
+test_dataset:
+- '$print("--- DATASET DEBUG ---")'
+- '$print(f"Dataset : {@dataset_csv}")'
+- '$print(f"Processor: {@processor}")'
+- '$print(f"Dataset length:  {@dataset.__len__()}")'
+- '$print(f"__get_item__:  {@dataset.__getitem__(0)}")'
 
-image: $monai.utils.CommonKeys.IMAGE
-pred: $monai.utils.CommonKeys.PRED
+test_dataloader:
+- '$print("--- DATALOADER DEBUG ---")'
+- '$print([batch["input_boxes"] for batch in tqdm(@dataloader(@dataset, batch_size=3, shuffle=True))])'
 
-# pre_transforms: '$scripts.transforms.test_transform'
+# Run
+infer:
+- "$print(scripts.infer.infer(@model, @device, @dataloader(@dataset, batch_size=1, shuffle=True)))"
 
-# pre_transforms:
-# - _target_: LoadImaged
-#   keys: '@image'
-#   image_only: true
-# - _target_: EnsureChannelFirstd
-#   keys: 'image'
-# - _target_: Resized
-#   keys: 'image'
-#   spatial_size: [512,512]
-# - _target_: ScaleIntensityd
-#   keys: '@image'
-# - _target_: NormalizeIntensityd
-#   keys: '@image'
-#   subtrahend: [0.522, 0.300, 0.167]
-#   divisor: [0.240, 0.189, 0.147]
-#   channel_wise: True
-
-# ITS HARD CODED FOR NOW!
-pre_transforms:
-- _target_: LoadImaged
-  keys: '@image'
-  image_only: true
-
-# https://docs.monai.io/en/stable/transforms.html
-# see above and ctrl+f for Activationsd
-post_transforms:
-  - _target_: scripts.custom_post_transform.CustomPostTransform
-    processor_name: SamProcessor
