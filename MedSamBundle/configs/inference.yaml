@@ -41,5 +41,6 @@ test_dataloader:
 
 # Run
 infer:
-- "$print(scripts.infer.infer(@model, @device, @dataloader(@dataset, batch_size=1, shuffle=True)))"
+# - "$print(scripts.infer.infer(@model, @device, @dataloader(@dataset, batch_size=1, shuffle=True)))"
+- "$print(scripts.infer.infer(@model, @device, next(iter(@dataloader(@dataset, batch_size=1, shuffle=True)))))"
 

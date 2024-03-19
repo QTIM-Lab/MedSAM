@@ -7,6 +7,9 @@ from torchvision.transforms import Compose, Resize, Grayscale, Lambda
 import torch
 from torch.utils.data import Dataset
 
+# Custom
+from MedSamBundle.scripts.transforms import MedSamTransform
+
 def get_bounding_box(ground_truth_map):
   # get bounding box from mask
   y_indices, x_indices = np.where(ground_truth_map > 0)
@@ -41,18 +44,11 @@ class SAMDataset(Dataset):
     def __len__(self):
         return len(self.dataset)
 
-    def _load_image(self, image_path, is_grayscale=True, resize=(256, 256)):
+    def _load_image(self, image_path, is_grayscale=False):
         image = Image.open(os.path.join(self.dataset_dir, image_path))
-        image = image.convert('RGB')
-        # image = image.convert('RGB')
-        img_transform = Compose([
-            Resize(resize),
-            Grayscale() if is_grayscale else Lambda(lambda x: x),
-            # ToTensor() # it will convert to tensor and scale between 0-1
-            Lambda(lambda x: torch.from_numpy(np.array(x))),
-            
-        ])
-        image = img_transform(image)
+        # Initialize the transform with the desired configuration
+        transform = MedSamTransform(is_grayscale=is_grayscale)
+        image = transform(image)
         return image
 
     def __getitem__(self, idx):
@@ -60,8 +56,8 @@ class SAMDataset(Dataset):
             item = self.dataset.iloc[idx]
             image = item['image_path_orig']
             label = item['labels']
-            image = self._load_image(image, is_grayscale=False, resize=(256, 256))
-            label = self._load_image(label, is_grayscale=True, resize=(256, 256))
+            image = self._load_image(image)
+            label = self._load_image(label, is_grayscale=True)
             label = (label > 0).float()
         else:            
             item = self.dataset[idx]

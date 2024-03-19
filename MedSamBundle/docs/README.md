@@ -26,7 +26,15 @@ There is a line:
 
 run_id = request.get("run_id", "run")
 
-And I don't really know how to set run_id so just kept as run.
+And I don't really know how to set run_id so just kept as run. -SK-
+
+So you can add to the request body -BB-
+```bash
+{"val_split": 0.3}
+or
+{"run_id": "run_ex_id_0001"}
+```
+Then in `def __call__` you can access with `run_id = request.get("run_id", "run")` as Scott mentioned above.
 
 Also in the docs we see BundleConfig at the top. Pretty much everything with key_ needs to be specified in this .yaml in the pattern specified by the BundleConfig. For example, that is why there is a train#trainer#max_epochs in one of the key_ functions, and then in the yamls is:
 
