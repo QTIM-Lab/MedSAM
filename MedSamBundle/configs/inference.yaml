@@ -4,9 +4,13 @@ imports:
 - $import monai
 - $import scripts
 - $import scripts.infer
+- $from scripts.inferer import MedSamInferer
+- $import scripts.dataset
+- $import scripts.transforms
 - $from transformers import SamProcessor
 - $from transformers import SamModel
 - $from scripts.dataset import SAMDataset
+
 
 device: '$"cuda" if torch.cuda.is_available() else "cpu"'
 
@@ -14,14 +18,21 @@ processor: '$SamProcessor.from_pretrained("facebook/sam-vit-base")'
 
 dataset:
   _target_: $SAMDataset
-  dataset: '@dataset_csv'
+  dataset: '/sddata/data/MedSAM/public_test_data_01_10_2023/Color_Fundus/maybe_GA.png'
   processor: '@processor'
+  mode: 'infer'
+  # dataset: '@dataset_csv'
+
+pre_transforms: $SAMDataset
 
 dataloader: $torch.utils.data.DataLoader
 
 test_tensor: '$torch.rand(*[4,4]).to(@device)'
 
 model: '$SamModel.from_pretrained("facebook/sam-vit-base")'
+
+network_def:
+  _target_: scripts.net.MedSamNet
 
 # Tests
 test_config:
@@ -39,8 +50,12 @@ test_dataloader:
 - '$print("--- DATALOADER DEBUG ---")'
 - '$print([batch["input_boxes"] for batch in tqdm(@dataloader(@dataset, batch_size=3, shuffle=True))])'
 
+# Hand inferer to monailabel
+## Hint line 174-ush in pre_transforms passes mode="infer" to the dataset instance
+inferer:
+  _target_: scripts.inferer.MedSamInferer
+
 # Run
 infer:
-# - "$print(scripts.infer.infer(@model, @device, @dataloader(@dataset, batch_size=1, shuffle=True)))"
-- "$print(scripts.infer.infer(@model, @device, next(iter(@dataloader(@dataset, batch_size=1, shuffle=True)))))"
-
+# - '$print(@dataset[0])'
+- "$print(@inferer(@dataset, network='MedSamBundle/models/model.pt'))"

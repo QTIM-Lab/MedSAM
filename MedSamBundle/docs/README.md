@@ -80,7 +80,7 @@ CONFIG_DEF_ENTRY_KEY=infer
 CONFIG_FILE=$BUNDLE/configs/inference.yaml
 
 # Train
-CONFIG_DEF_ENTRY_KEY=train
+CONFIG_DEF_ENTRY_KEY=run
 CONFIG_FILE=$BUNDLE/configs/train.yaml
 
 DATASET_CSV=/sddata/data/MedSAM/public_test_data_01_10_2023/image_key_cf.csv

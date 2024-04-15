@@ -1,4 +1,4 @@
-import os
+import os, pdb
 from PIL import Image
 import numpy as np
 import torch
@@ -6,6 +6,7 @@ from torchvision import transforms
 
 class MedSamTransform(transforms.Compose):
     def __init__(self, is_grayscale=False, resize=(256, 256)):
+        print("!!!In MedSamTransform!!!\n")
         self.is_grayscale = is_grayscale
         self.resize = resize
         transformations = [
